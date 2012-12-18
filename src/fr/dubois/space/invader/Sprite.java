@@ -8,14 +8,17 @@ import android.graphics.RectF;
 public abstract class Sprite {
 	
 	protected Bitmap bitmap;
-	protected float x;
-	protected float y;
+	protected float x,x1; // x1 et y1 son les coordonnée de départ, elles ne sont jamais changé, a mettre en static
+	protected float y,y1;
 	protected Paint paint;
 
 	public Sprite(Bitmap bitmap,float x,float y) {
 		this.bitmap = bitmap;
 		this.x = x;
 		this.y = y;
+		this.x1 = x;
+		this.y1 = y;
+		
 		paint = new Paint();
 		
 	}
@@ -30,7 +33,6 @@ public abstract class Sprite {
 	
 	public abstract void act();
 
-	
-	
+		
 
 }
