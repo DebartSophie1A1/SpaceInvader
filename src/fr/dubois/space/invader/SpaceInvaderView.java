@@ -2,6 +2,7 @@ package fr.dubois.space.invader;
 
 
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -34,21 +35,24 @@ public class SpaceInvaderView extends View
 	private static final int TARGET_WIDTH = 600;
 
 	private Paint paint; // Style pour le texte	
-	private String text; // texte Ã  afficher
+	private String text; // texte a  afficher
 
 
 	private Bitmap missile2bitmap;
-	Missile missile2; 
+	 
 	private Bitmap alienbitmap;
-
-	Alien alien;
+	private Alien alien;
 	
-	Alien tabAlien[]= new Alien[16]; // Creer un tableau d'alien
-	Missile tabMissile[] = new Missile[16]; // Creer un tableau de missile
+	private ArrayList<Missile> ListeMissile;
+	private ArrayList<Alien> ListeAlien;
+	
+	// Alien tabAlien[]= new Alien[16]; // Creer un tableau d'alien
+//	Missile tabMissile[] = new Missile[16]; // Creer un tableau de missile
 	Matrix transform;
 
 	private Bitmap shipbitmap;
-	Ship ship;
+	private Ship ship;
+
 
 	public SpaceInvaderView(Context context) {
 		super(context);
@@ -62,6 +66,8 @@ public class SpaceInvaderView extends View
 
 	public SpaceInvaderView(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		ListeMissile =new ArrayList<Missile>(10);
+		ListeAlien = new ArrayList<Alien>(10);
 		init();
 	}
 
@@ -109,29 +115,24 @@ public class SpaceInvaderView extends View
 		
 		paint = new Paint();
 		paint.setStyle(Style.STROKE);
-		paint.setColor(Color.YELLOW);
+		paint.setColor(Color.RED);
 		paint.setTypeface(Typeface.SANS_SERIF);
 		paint.setTextSize(36);
 		paint.setTextAlign(Paint.Align.CENTER);
-		text = "Texte";
-
+		text = "Game Over LOOOSER !!?";
 		
 		
 		alienbitmap = loadImage(R.drawable.alien1);
 		
-		int i=0;
 		for(int x=50;x<=300;x+=80) // position dans la ligne
 		{
 			for(int y=50;y<=300;y+=80) // position dans la colonne
 			{
-				tabAlien[i] = new Alien (alienbitmap,x,y);
-				i++; // position dans le tableau
+				ListeAlien.add(new Alien (alienbitmap,x,y));
 			}
 		}
-
-		int j=0;
 		
-		 tabMissile[j] = new Missile (missile2bitmap, j, j, j, j);
+	/* tabMissile[j] = new Missile (missile2bitmap, j, j, j, j);
 		 for(int x=50;x<=300;x+=80) // position dans la ligne
 			{
 				for(int y=50;y<=300;y+=80) // position dans la colonne
@@ -140,40 +141,73 @@ public class SpaceInvaderView extends View
 					j++; // position dans le tableau
 				}
 			}
-		
+		*/
 		// alien = new Alien(alienbitmap,80,80); // creer un seul alien
+		
 		shipbitmap =loadImage(R.drawable.ship);
 		ship = new Ship (shipbitmap,220,615);
 		
-		
 		missile2bitmap = loadImage(R.drawable.missile2);
-		missile2 = new Missile (missile2bitmap,220,515,j,j);
-
+		
+		ListeMissile.add(new Missile (missile2bitmap,ship.getX()-150,ship.getY()));
+		ListeMissile.add(new Missile (missile2bitmap,ship.getX()-100,ship.getY()));
+		ListeMissile.add(new Missile (missile2bitmap,ship.getX()-50,ship.getY()));
+		ListeMissile.add(new Missile (missile2bitmap,ship.getX(),ship.getY()));// a appeller dans update lorsqu'il y a pression sur une touche
+		ListeMissile.add(new Missile (missile2bitmap,ship.getX()+50,ship.getY()));
+		ListeMissile.add(new Missile (missile2bitmap,ship.getX()+100,ship.getY()));
+		ListeMissile.add(new Missile (missile2bitmap,ship.getX()+150,ship.getY()));
 		this.update();
 	}
 
 
-	public void update() {
+	public void update()
+	{
 		// TODO Auto-generated method stub
 		//ship.act();
 		mRedrawHandler.sleep(40); // Attend une certaine durée
 		// alien.act(); // Pour un seul alien
-		for(int i=0;i<tabAlien.length;i++)
+		
+		for(Alien a: ListeAlien)
 		{
-			tabAlien[i].act();
-			
+			a.act();
 		}
-		for(int j=0;j<tabMissile.length;j++)
+		
+		boolean b=false;
+		ship.act();
+		
+		Iterator<Missile> it1;
+		it1=ListeMissile.iterator();
+		Iterator<Alien> it2;
+		it2=ListeAlien.iterator();
+		while(it1.hasNext())
 		{
-			tabMissile[j].act();
-			
-		}
-	
-		for(Missile m :liste ){
-			m.act();
-		}
+			b=true;
+			Missile m=it1.next();
+			m.act();//deplace le missile
+			if(m.getY()<0) 
+			{
+				it1.remove(); //supprime le missile
+			}
+			while(it2.hasNext() && b)
+			{
+				Alien a=it2.next();
+				if(m.getY()<a.getY()+50 && m.getX()<a.getX()+35 && m.getX()>a.getX()-35)
+				{
+					it1.remove(); //supprime le missile si il croise un alien
+					it2.remove(); //supprime l'alien
+					b=false;
+				}
+			}	
+		}	
 	}
-	// 
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event)
+	{
+		// TODO Auto-generated method stub
+		return super.onTouchEvent(event);
+		
+	}
 
 	@Override
 	protected void onDraw(Canvas canvas)
@@ -182,27 +216,39 @@ public class SpaceInvaderView extends View
 		canvas.drawRGB(0, 0, 0);
 		canvas.drawRect(0, 0, TARGET_WIDTH-1, TARGET_HEIGHT-1, paint);
 		
-		missile2.draw(canvas);
-		
-		for(int i=0;i<tabAlien.length;i++) // affichage du tableau d'alien
+		for(Missile m: ListeMissile)
 		{
-			tabAlien[i].draw(canvas);
+			m.draw(canvas);
 		}
 		
-		for(int j=0;j<tabMissile.length;j++)
+		for(Alien a: ListeAlien)
+		{
+			a.draw(canvas);
+		}
+		
+		/*for(int j=0;j<tabMissile.length;j++)
 		{
 			tabMissile[j].draw(canvas);
 		}
-		// alien.draw(canvas); // Affichage d'un seul alien
+		// alien.draw(canvas); // Affichage d'un seul alien*/
+		
 		ship.draw(canvas);
 		
 		/* Affichage du texte qui sert a rien.... Remplacer par Ready ! 3 2 1;
 		if (text != null){
-			canvas.drawText(text, canvas.getWidth()/2,canvas.getHeight()/2, paint);
-			
+			canvas.drawText(Game Over, canvas.getWidth()/2,canvas.getHeight()/2, paint);
 		}
 		*/
-		
+		for(Alien a: ListeAlien)
+		{
+			if(a.getY()>600)
+			{
+				if (text != null)
+				{
+					canvas.drawText(text, canvas.getWidth()/2,canvas.getHeight()/2, paint);
+				}
+			}
+		}	
 	}
 
 
@@ -226,7 +272,7 @@ public class SpaceInvaderView extends View
 	}
 
 	@Override
-	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+	protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
 		int x = computeSize(widthMeasureSpec,TARGET_WIDTH);
 		int y = computeSize(heightMeasureSpec,TARGET_HEIGHT);
 		this.setMeasuredDimension(x,y);

@@ -32,12 +32,49 @@ public class Alien extends Sprite
 		
 		if(pair)
 		{
-			x+=5;
+			x+=5; //vitesse des aliens
+			/*
+			if(y>y1+20)
+			{
+				x+=1;
+			}
+			if(y>y1+40)
+			{
+				x+=1;
+			}
+			if(y>y1+60)
+			{
+				x+=1;
+			}
+			*/
 		}
 		else
 		{
 			x-=5;
+			/*
+			if(y>y1+20)
+			{
+				x+=1;
+			}
+			if(y>y1+40)
+			{
+				x+=1;
+			}
+			if(y>y1+60)
+			{
+				x+=1;
+			}
+			*/
 		}
 	}
 
+	public float getX()
+	{
+		return x;
+	}
+	
+	public float getY()
+	{
+		return y;
+	}
 }
